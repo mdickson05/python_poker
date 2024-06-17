@@ -33,6 +33,31 @@ class Card:
 		suit = self.get_suit()
 		rank = ranking.index(suit)
 		self.set_suit_rank(rank)
+	def get_rank_map(self):
+		rank_map = {
+			"2": "Two",
+			"3": "Three",
+			"4": "Four",
+			"5": "Five",
+			"6": "Six",
+			"7": "Seven",
+			"8": "Eight",
+			"9": "Nine",
+			"T": "Ten",
+			"J": "Jack",
+			"Q": "Queen",
+			"K": "King",
+			"A": "Ace"
+		}
+		return rank_map
+	def get_suit_map(self):
+		suit_map = {
+			"s": "Spades",
+			"h": "Hearts",
+			"d": "Diamonds",
+			"c": "Clubs"
+		}
+		return suit_map
 class Hand:
 	def __init__(self, cards):
 		self.hand = cards
@@ -43,8 +68,11 @@ class Hand:
 	def __str__(self):
 		hands = []
 		for card in self.hand:
-			hands.append(card.get_num() + card.get_suit())
-		return ' '.join(hands)
+			rank_map = card.get_rank_map()
+			suit_map = card.get_suit_map()
+			card_string = rank_map[card.get_num()] + ' of ' + suit_map[card.get_suit()]
+			hands.append(card_string)
+		return ', '.join(hands)
 	def get_hand(self):
 		return self.hand
 	def get_rank_list(self):
@@ -251,49 +279,88 @@ def ranking_hands(hands):
 		hand.sort_by_rank()
 		# print('Hand:')
 		value_of_hand = 0 # undefined hand rank is 0
+		
+		ranks_list = hand.get_rank_list()
+		highest_rank = ranks_list[4].get_num_rank()
 		# for card in hand:
 			# print('Suit:', card.get_suit(), 'rank:', card.get_num_rank())
 		is_flush = hand.is_flush()
 		is_straight = hand.is_straight()
 		if is_flush and is_straight: # if straight flush...
-			value_of_hand = 2
-			# 2nd best hand, will be winning unless royal flush occurs
-			# As such, no break statement as not outright winner
-			ranks = hand.get_rank_list()
-			lowest_rank = rank[4] 
 			if highest_rank == 12: # i.e. if highest rank is ACE
-				winner = card
-				break; # is royal flush; best possible hand, no other possible winner.
+				value_of_hand = 10000 # hand is royal flush; best possible hand.
+			else:
+				value_of_hand = 9000 + highest_rank
 		elif hand.is_four_of_a_kind():
-			value_of_hand = 3
+			value_of_hand = 8000 + highest_rank
 		elif hand.is_full_house():
-			value_of_hand = 4
+			value_of_hand = 7000 # + set_ranking
 		elif is_flush:
-			value_of_hand = 5
+			value_of_hand = 6000 + highest_rank
 		elif is_straight:
-			value_of_hand = 6
+			value_of_hand = 5000 + highest_rank
 		elif hand.is_three_of_a_kind():
-			value_of_hand = 7
+			value_of_hand = 4000 # + set_ranking
 		elif hand.is_two_pair():
-			value_of_hand = 8
+			value_of_hand = 3000 # + maths stuff
 		elif hand.is_one_pair():
-			value_of_hand = 9
+			value_of_hand = 2000 # + maths stuff
 		elif hand.has_high_card():
-			value_of_hand = 10
+			value_of_hand = 1000 + highest_rank
 		else:
-			value_of_hand = 11
+			value_of_hand = 0 + highest_rank
 		ranking = (hand, value_of_hand)
 		ranks.append(ranking)
 		# print('Card complete')
-	ranks.sort(key=lambda ranking: ranking[1])
-	winner = ranks[0]
-	return winner
+	ranks.sort(key=lambda ranking: ranking[1],reverse=True)
+	return ranks
+
+# Straight from Stack Overflow: https://stackoverflow.com/a/20007730
+def get_ordinal(n):
+	if 11 <= (n % 100) <= 13:
+	    suffix = 'th'
+	else:
+	    suffix = ['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]
+	return str(n) + suffix
+
+def get_hand_value_as_string(value_of_hand):
+	rank_string = "(No rank)"
+	if value_of_hand == 10000:
+		rank_string = "(Royal Flush!)"
+	elif 9000 <= value_of_hand <= 9012:
+		rank_string = "(Straight Flush)"
+	elif 8000 <= value_of_hand <= 8012:
+		rank_string = "(Four of a Kind)"
+	elif 7000 <= value_of_hand <= 7012:
+		rank_string = "(Full House)"
+	elif 6000 <= value_of_hand <= 6012:
+		rank_string = "(Flush)"
+	elif 5000 <= value_of_hand <= 5012:
+		rank_string = "(Straight)"
+	elif 4000 <= value_of_hand <= 4012:
+		rank_string = "(Three of a Kind)"
+	elif 3000 <= value_of_hand <= 3012:
+		rank_string = "(Two Pair)"
+	elif 2000 <= value_of_hand <= 2012:
+		rank_string = "(One Pair)"
+	elif 1000 <= value_of_hand <= 1012:
+		rank_string = "(High Card)"
+	return rank_string
 
 hands_list = parse_input()
 # for hand in hands_list:	
 	# print('Hand:')
 	# for item in hand:
 	#	print('Card:', item, 'Suit:', item.get_suit_rank(), 'Rank:', item.get_num_rank()) 
-winner = ranking_hands(hands_list)
+ranking = ranking_hands(hands_list)
+winner = ranking[0]
 winner_hand = winner[0]
-print('Winner is:', winner_hand)
+hand_value_as_string = get_hand_value_as_string(winner[1])
+print('Winner is:', winner_hand, hand_value_as_string)
+
+print('Leaderboard:')
+for result in ranking:
+	hand = result[0]
+	value = get_hand_value_as_string(result[1])
+	ordinal = get_ordinal(ranking.index(result) + 1)
+	print(ordinal, 'place:', hand, value)
