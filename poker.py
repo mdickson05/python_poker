@@ -183,7 +183,7 @@ class Hand:
 	def is_two_pair(self):
 		cards = self.get_rank_list()
 		two_pair = True
-		if self.is_four_of_kind() or self.is_full_house() or self.is_three_of_a_kind():
+		if self.is_four_of_a_kind() or self.is_full_house() or self.is_three_of_a_kind():
 		# same principle as three of kind: check for these first to rule out combinations
 			two_pair = False
 		else:	
@@ -208,8 +208,8 @@ class Hand:
 	def is_one_pair(self):
 		cards = self.get_rank_list()
 		one_pair = True
-		if (self.is_four_of_kind() or self.is_full_house() or 
-			self.is_three_of_a_kind() or self_is_two_pair()):
+		if (self.is_four_of_a_kind() or self.is_full_house() or 
+			self.is_three_of_a_kind() or self.is_two_pair()):
 		# same principle as three of kind: check for these first to rule out combinations
 			one_pair = False
 		else:	
@@ -271,6 +271,71 @@ def parse_input():
 			all_hands.append(hand_object)
 	return all_hands
 
+def two_pair_value(hand):
+	cards = hand.get_rank_list()
+	# get rank @ position
+	first = cards[0].get_num_rank()
+	second = cards[1].get_num_rank()
+	third = cards[2].get_num_rank()
+	fourth = cards[3].get_num_rank()
+	fifth = cards[4].get_num_rank()
+	
+	'''
+	formula: 
+	TWO_PAIRS + 14^2 * HIGH_PAIR_VAL + 14 * LOW_PAIR_VAL + UNMATCHED
+	'''
+	# x x y y a
+	if first == second and third == fourth:
+		value = (14*14*third + 14*first + fifth)
+	# x x a y y
+	elif first == second and fourth == fifth:
+		value = (14*14*fourth + 14*first + third)
+	# a x x y y
+	else:
+		value = (14*14*fourth + 14*second + first) 
+	return value
+def one_pair_value(hand):
+	cards = hand.get_rank_list()
+	# get rank @ position
+	first = cards[0].get_num_rank()
+	second = cards[1].get_num_rank()
+	third = cards[2].get_num_rank()
+	fourth = cards[3].get_num_rank()
+	fifth = cards[4].get_num_rank()
+	'''
+	FORMULA:
+		ONE_PAIR + 14^3*PairCard + 14^2*HighestCard + 14*MiddleCard 
+		+ LowestCard
+	'''
+	# x x a b c
+	if first == second:
+		value = 14*14*14*first + third + 14*fourth + 14*14*fifth
+	# a x x b c
+	elif second == third:
+		value = 14*14*14*second + first + 14*fourth + 14*14*fifth
+	# a b x x c
+	elif third == fourth:
+		value = 14*14*14*third + first + 14*second + 14*14*fifth
+	# a b c x x
+	else:
+		value = 14*14*14*fourth + first + 14*second + 14*14*third
+	return value
+
+def high_card_value(hand):	
+	cards = hand.get_rank_list()
+	# get rank @ position
+	first = cards[0].get_num_rank()
+	second = cards[1].get_num_rank()
+	third = cards[2].get_num_rank()
+	fourth = cards[3].get_num_rank()
+	fifth = cards[4].get_num_rank()
+	'''
+	FORMULA:
+		high_card_value = 14^4*Fifth + 14^3*Fourth + 14^2*Third + 14*Second
+		+ first
+	'''
+	return 14*14*14*14*fifth + 14*14*14*fourth + 14*14*third + 14*second + first
+
 def ranking_hands(hands):
 	ranks = []
 	winner = None
@@ -281,34 +346,33 @@ def ranking_hands(hands):
 		value_of_hand = 0 # undefined hand rank is 0
 		
 		ranks_list = hand.get_rank_list()
-		highest_rank = ranks_list[4].get_num_rank()
+		high_card_rank = high_card_value(hand)
+		set_rank = ranks_list[2].get_num_rank()
 		# for card in hand:
 			# print('Suit:', card.get_suit(), 'rank:', card.get_num_rank())
 		is_flush = hand.is_flush()
 		is_straight = hand.is_straight()
 		if is_flush and is_straight: # if straight flush...
 			if highest_rank == 12: # i.e. if highest rank is ACE
-				value_of_hand = 10000 # hand is royal flush; best possible hand.
+				value_of_hand = 9000000 # hand is royal flush; best possible hand.
 			else:
-				value_of_hand = 9000 + highest_rank
+				value_of_hand = 8000000 + high_card_rank
 		elif hand.is_four_of_a_kind():
-			value_of_hand = 8000 + highest_rank
+			value_of_hand = 7000000 + high_card_rank
 		elif hand.is_full_house():
-			value_of_hand = 7000 # + set_ranking
+			value_of_hand = 6000000 + set_rank
 		elif is_flush:
-			value_of_hand = 6000 + highest_rank
+			value_of_hand = 5000000 + high_card_rank
 		elif is_straight:
-			value_of_hand = 5000 + highest_rank
+			value_of_hand = 4000000 + high_card_rank
 		elif hand.is_three_of_a_kind():
-			value_of_hand = 4000 # + set_ranking
+			value_of_hand = 3000000 + set_rank
 		elif hand.is_two_pair():
-			value_of_hand = 3000 # + maths stuff
+			value_of_hand = 2000000 + two_pair_value(hand)
 		elif hand.is_one_pair():
-			value_of_hand = 2000 # + maths stuff
-		elif hand.has_high_card():
-			value_of_hand = 1000 + highest_rank
+			value_of_hand = 1000000 + one_pair_value(hand)
 		else:
-			value_of_hand = 0 + highest_rank
+			value_of_hand = high_card_rank
 		ranking = (hand, value_of_hand)
 		ranks.append(ranking)
 		# print('Card complete')
@@ -361,6 +425,7 @@ print('Winner is:', winner_hand, hand_value_as_string)
 print('Leaderboard:')
 for result in ranking:
 	hand = result[0]
-	value = get_hand_value_as_string(result[1])
+	# value = get_hand_value_as_string(result[1])
+	value = int(result[1])
 	ordinal = get_ordinal(ranking.index(result) + 1)
 	print(ordinal, 'place:', hand, value)
