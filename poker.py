@@ -5,8 +5,8 @@ class Card:
 	def __init__(self, suit, num):
 		self.suit = suit
 		self.num = num
-		self.num_rank = 0
-		self.suit_rank = 0
+		self.rank_value = 0
+		self.suit_value = 0
 	def __str__(self):
 		return str(self.num) + str(self.suit)
 	def __iter__(self):
@@ -16,24 +16,24 @@ class Card:
 		return self.suit
 	def get_num(self):
 		return self.num
-	def get_num_rank(self):
-		return self.num_rank
-	def get_suit_rank(self):
-		return self.suit_rank
-	def set_num_rank(self, in_rank):
-		self.num_rank = in_rank
-	def set_suit_rank(self, in_rank):
-		self.suit_rank = in_rank
-	def find_num_rank(self):
+	def get_rank_value(self):
+		return self.rank_value
+	def get_suit_value(self):
+		return self.suit_value
+	def set_rank_value(self, in_rank):
+		self.rank_value = in_rank
+	def set_suit_value(self, in_rank):
+		self.suit_value = in_rank
+	def find_rank_value(self):
 		ranking = ['2','3','4','5','6','7','8','9','T','J','Q','K','A']
 		num = self.get_num()
 		rank = ranking.index(num)
-		self.set_num_rank(rank)
-	def find_suit_rank(self):
+		self.set_rank_value(rank)
+	def find_suit_value(self):
 		ranking = ['s', 'h', 'd', 'c']
 		suit = self.get_suit()
 		rank = ranking.index(suit)
-		self.set_suit_rank(rank)
+		self.set_suit_value(rank)
 	def get_rank_map(self):
 		rank_map = {
 			"2": "Two",
@@ -84,29 +84,40 @@ class Hand:
 		self.rank_list = in_list
 	def set_suit_list(self, in_list):
 		self.suit_list = in_list
-	def sort_by_rank(self):
+	def generate_rank_list(self):
 		cards = self.get_hand()
-		cards.sort(key=lambda card: card.num_rank)
+		cards.sort(key=lambda card: card.rank_value)
 		# sorted_hand = ';'.join(sorted_cards)
 		self.set_rank_list(cards)
-	def sort_by_suit(self):
+	def generate_suit_list(self):
 		cards = self.get_hand()
-		cards.sort(key=lambda card: card.get_suit_rank())
+		cards.sort(key=lambda card: card.get_suit_value())
 		self.set_suit_list(cards)
-	def has_high_card(self):
-		high_card = False
-		ranks = self.get_rank_list()
-		highest_rank = ranks[4]
-		if 9 <= highest_rank <= 12: # i.e. if rank is between JACK and ACE 
-			high_card = True
-		return high_card
+	def get_rank_positions(self):
+		cards = self.get_rank_list()
+		# get rank @ position
+		first = cards[0].get_rank_value()
+		second = cards[1].get_rank_value()
+		third = cards[2].get_rank_value()
+		fourth = cards[3].get_rank_value()
+		fifth = cards[4].get_rank_value()
+		return [first, second, third, fourth, fifth]
+	def get_suit_positions(self):
+		cards = self.get_suit_list()
+		# get rank @ position
+		first = cards[0].get_suit_value()
+		second = cards[1].get_suit_value()
+		third = cards[2].get_suit_value()
+		fourth = cards[3].get_suit_value()
+		fifth = cards[4].get_suit_value()
+		return [first, second, third, fourth, fifth]
 	def is_flush(self):
 		cards = self.get_suit_list()
-		first = cards[0].get_suit_rank()
-		second = cards[1].get_suit_rank()
-		third = cards[2].get_suit_rank()
-		fourth = cards[3].get_suit_rank()
-		fifth = cards[4].get_suit_rank()
+		first = cards[0].get_suit_value()
+		second = cards[1].get_suit_value()
+		third = cards[2].get_suit_value()
+		fourth = cards[3].get_suit_value()
+		fifth = cards[4].get_suit_value()
 		return first == second == third == fourth == fifth
 	def is_straight(self):
 		cards = self.get_rank_list()
@@ -116,7 +127,7 @@ class Hand:
 			# ACE wraps around; needs to be considered
 			rank_list = []
 			for card in cards:
-				rank = card.get_num_rank(card)
+				rank = card.get_rank_value(card)
 				rank_list.append(rank)
 			if 8 in rank_list and 9 in rank_list and 10 in rank_list and 11 in rank_list:
 				# i.e. if T, J, Q and K appear
@@ -128,13 +139,12 @@ class Hand:
 			straight = self.walk(cards)
 		return straight
 	def is_four_of_a_kind(self):
-		cards = self.get_rank_list()
-		# get rank @ position
-		first = cards[0].get_num_rank()
-		second = cards[1].get_num_rank()
-		third = cards[2].get_num_rank()
-		fourth = cards[3].get_num_rank()
-		fifth = cards[4].get_num_rank()
+		positions = self.get_rank_positions()
+		first = positions[0]
+		second = positions[1]
+		third = positions[2]
+		fourth = positions[3]
+		fifth = positions[4]
 		# check for x x x x y
 		x_first = first == second == third == fourth
 		# check for y x x x x 
@@ -142,13 +152,12 @@ class Hand:
 		# OR operator: only returns False if both elements are false, else True
 		return x_first or x_last
 	def is_full_house(self):
-		cards = self.get_rank_list()
-		# get rank @ position
-		first = cards[0].get_num_rank()
-		second = cards[1].get_num_rank()
-		third = cards[2].get_num_rank()
-		fourth = cards[3].get_num_rank()
-		fifth = cards[4].get_num_rank()
+		positions = self.get_rank_positions()
+		first = positions[0]
+		second = positions[1]
+		third = positions[2]
+		fourth = positions[3]
+		fifth = positions[4]
 		# check for x x x y y
 		three_x = first == second and second == third and fourth == fifth
 		# check for x x y y y
@@ -157,69 +166,55 @@ class Hand:
 		return three_x or three_y
 
 	def is_three_of_a_kind(self):
-		cards = self.get_rank_list()
-		three_of_kind = True
-		if self.is_four_of_a_kind() or self.is_full_house():
-		# if we check for self first, we can rule out some combinations for further tests
-			three_of_kind = False
-		else:
+		three_of_kind = False
+		# if we check four_of_kind & full house first, we can rule out some combinations for further tests
+		if not (self.is_four_of_a_kind() or self.is_full_house()):
 			# get rank @ position
-			first = cards[0].get_num_rank()
-			second = cards[1].get_num_rank()
-			third = cards[2].get_num_rank()
-			fourth = cards[3].get_num_rank()
-			fifth = cards[4].get_num_rank()
+			positions = self.get_rank_positions()
+			first = positions[0]
+			second = positions[1]
+			third = positions[2]
+			fourth = positions[3]
+			fifth = positions[4]
 			# check x x x a b
 			front = first == second and second == third 
 			# check a x x x b
 			middle = second == third and third == fourth
 			# check a b x x x
 			back = third == fourth and fourth == fifth
-
-			if front or middle or back:
-				three_of_kind = True
-			else:
-				three_of_kind = False
+			three_of_kind = front or middle or back
 		return three_of_kind
 	def is_two_pair(self):
-		cards = self.get_rank_list()
-		two_pair = True
-		if self.is_four_of_a_kind() or self.is_full_house() or self.is_three_of_a_kind():
+		two_pair = False
 		# same principle as three of kind: check for these first to rule out combinations
-			two_pair = False
-		else:	
-			# get rank @ position
-			first = cards[0].get_num_rank()
-			second = cards[1].get_num_rank()
-			third = cards[2].get_num_rank()
-			fourth = cards[3].get_num_rank()
-			fifth = cards[4].get_num_rank()
+		if not (self.is_four_of_a_kind() or self.is_full_house() or self.is_three_of_a_kind()):
+			positions = self.get_rank_positions()
+			first = positions[0]
+			second = positions[1]
+			third = positions[2]
+			fourth = positions[3]
+			fifth = positions[4]
 			# check a a b b x
 			back = first == second and third == fourth
 			# check a a x b b
 			middle = first == second and fourth == fifth
 			# check x a a b b
 			front = second == third and fourth == fifth
-			if front or middle or back:
-				two_pair = True
-			else:
-				two_pair = False
+			two_pair = front or middle or back
 		return two_pair
 			
 	def is_one_pair(self):
-		cards = self.get_rank_list()
-		one_pair = True
-		if (self.is_four_of_a_kind() or self.is_full_house() or 
-			self.is_three_of_a_kind() or self.is_two_pair()):
+		one_pair = False
 		# same principle as three of kind: check for these first to rule out combinations
-			one_pair = False
-		else:	
+		if not (self.is_four_of_a_kind() or self.is_full_house() or 
+			self.is_three_of_a_kind() or self.is_two_pair()):
 			# get rank @ position
-			first = cards[0].get_num_rank()
-			second = cards[1].get_num_rank()
-			third = cards[2].get_num_rank()
-			fourth = cards[3].get_num_rank()
-			fifth = cards[4].get_num_rank()
+			positions = self.get_rank_positions()
+			first = positions[0]
+			second = positions[1]
+			third = positions[2]
+			fourth = positions[3]
+			fifth = positions[4]
 			# check a a x y z
 			pair_first = first == second
 			# check x a a y z
@@ -228,23 +223,20 @@ class Hand:
 			pair_back_mid = third == fourth
 			# check x y z a a
 			pair_last = fourth == fifth
-			if pair_first or pair_front_mid or pair_back_mid or pair_last:
-				one_pair = True
-			else:
-				one_pair = False
+			one_pair = pair_first or pair_front_mid or pair_back_mid or pair_last
 		return one_pair
 
 	def walk(self, cards):
 	# if hand is "walkable", it means that next element in the list is the value of the previous + 1
 	# i.e 3 = 2 + 1,etc.
 		walkable = True
-		rank = cards[0].get_num_rank() # start with lowest rank
+		rank = cards[0].get_rank_value() # start with lowest rank
 		for card in cards[1:]:
-			if card.get_num_rank() != rank + 1:
+			if card.get_rank_value() != rank + 1:
 				walkable = False
 				break # no point iterating if not walkable
 			else:
-				rank = card.get_num_rank()
+				rank = card.get_rank_value()
 		return walkable
 	
 # Taken from tournament.py in mdickson05/50pythonpuzzles
@@ -257,31 +249,29 @@ def parse_input(cli_path):
 	with path.open() as f:
 		lines = f.readlines()
 		for line in lines:
-			hand = []
+			cards_list = []
 			line = line.strip()
 			cards = line.split(";")
 			for card_string in cards:
 				rank = card_string[0]
 				suit = card_string[1]
 				card = Card(suit, rank)
-				card.find_suit_rank()
-				card.find_num_rank()
-				hand.append(card)
-			hand_object = Hand(hand)
-			# for card in hand_object:
-				# print('suit:', card.get_suit_rank())
-			all_hands.append(hand_object)
+				card.find_suit_value()
+				card.find_rank_value()
+				cards_list.append(card)
+			hand = Hand(cards_list)
+			hand.generate_suit_list() # generates suit list
+			hand.generate_rank_list() # generates rank list
+			all_hands.append(hand)
 	return all_hands
 
 def two_pair_value(hand):
-	cards = hand.get_rank_list()
-	# get rank @ position
-	first = cards[0].get_num_rank()
-	second = cards[1].get_num_rank()
-	third = cards[2].get_num_rank()
-	fourth = cards[3].get_num_rank()
-	fifth = cards[4].get_num_rank()
-	
+	positions = hand.get_rank_positions()
+	first = positions[0]
+	second = positions[1]
+	third = positions[2]
+	fourth = positions[3]
+	fifth = positions[4]
 	'''
 	formula: 
 	TWO_PAIRS + 14^2 * HIGH_PAIR_VAL + 14 * LOW_PAIR_VAL + UNMATCHED
@@ -297,13 +287,12 @@ def two_pair_value(hand):
 		value = (14*14*fourth + 14*second + first) 
 	return value
 def one_pair_value(hand):
-	cards = hand.get_rank_list()
-	# get rank @ position
-	first = cards[0].get_num_rank()
-	second = cards[1].get_num_rank()
-	third = cards[2].get_num_rank()
-	fourth = cards[3].get_num_rank()
-	fifth = cards[4].get_num_rank()
+	positions = hand.get_rank_positions()
+	first = positions[0]
+	second = positions[1]
+	third = positions[2]
+	fourth = positions[3]
+	fifth = positions[4]
 	'''
 	FORMULA:
 		ONE_PAIR + 14^3*PairCard + 14^2*HighestCard + 14*MiddleCard 
@@ -326,11 +315,11 @@ def one_pair_value(hand):
 def high_card_value(hand):	
 	cards = hand.get_rank_list()
 	# get rank @ position
-	first = cards[0].get_num_rank()
-	second = cards[1].get_num_rank()
-	third = cards[2].get_num_rank()
-	fourth = cards[3].get_num_rank()
-	fifth = cards[4].get_num_rank()
+	first = cards[0].get_rank_value()
+	second = cards[1].get_rank_value()
+	third = cards[2].get_rank_value()
+	fourth = cards[3].get_rank_value()
+	fifth = cards[4].get_rank_value()
 	'''
 	FORMULA:
 		high_card_value = 14^4*Fifth + 14^3*Fourth + 14^2*Third + 14*Second
@@ -342,11 +331,11 @@ def high_card_value(hand):
 def suit_value(hand):
 	cards = hand.get_suit_list()
 	# get rank @ position
-	first = cards[0].get_suit_rank()
-	second = cards[1].get_suit_rank()
-	third = cards[2].get_suit_rank()
-	fourth = cards[3].get_suit_rank()
-	fifth = cards[4].get_suit_rank()
+	first = cards[0].get_suit_value()
+	second = cards[1].get_suit_value()
+	third = cards[2].get_suit_value()
+	fourth = cards[3].get_suit_value()
+	fifth = cards[4].get_suit_value()
 	'''
 	FORMULA:
 		suit_value = 14^4*Fifth + 14^3*Fourth + 14^2*Third + 14*Second
@@ -379,21 +368,19 @@ def ranking_hands(hands):
 	ONE_PAIR = 1000000
 
 	for hand in hands:
-		hand.sort_by_suit()
-		hand.sort_by_rank()
 		# print('Hand:')
 		value_of_hand = 0 # undefined hand rank is 0
 		
 		ranks_list = hand.get_rank_list()
 		high_card_rank = high_card_value(hand)
-		set_rank = ranks_list[2].get_num_rank()
+		set_rank = ranks_list[2].get_rank_value()
 		suits_rank = suit_value(hand) # used in case of draw!
 		# for card in hand:
-			# print('Suit:', card.get_suit(), 'rank:', card.get_num_rank())
+			# print('Suit:', card.get_suit(), 'rank:', card.get_rank_value())
 		is_flush = hand.is_flush()
 		is_straight = hand.is_straight()
 		if is_flush and is_straight: # if straight flush...
-			highest_rank = ranks_list[4].get_num_rank()
+			highest_rank = ranks_list[4].get_rank_value()
 			if highest_rank == 12: # i.e. if highest rank is ACE
 				value_of_hand = ROYAL_FLUSH # hand is royal flush; best possible hand.
 			else:
@@ -457,7 +444,7 @@ try:
 	# for hand in hands_list:	
 		# print('Hand:')
 		# for item in hand:
-		#	print('Card:', item, 'Suit:', item.get_suit_rank(), 'Rank:', item.get_num_rank()) 
+		#	print('Card:', item, 'Suit:', item.get_suit_value(), 'Rank:', item.get_rank_value()) 
 	ranking = ranking_hands(hands_list)
 	winner = ranking[0]
 	winner_hand = winner[0]
