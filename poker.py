@@ -101,13 +101,13 @@ class Hand:
 			high_card = True
 		return high_card
 	def is_flush(self):
-		flush = False
 		cards = self.get_suit_list()
-		lowest_suit = cards[0]
-		highest_suit = cards[4]
-		if lowest_suit == highest_suit:
-			flush = True
-		return flush
+		first = cards[0].get_suit_rank()
+		second = cards[1].get_suit_rank()
+		third = cards[2].get_suit_rank()
+		fourth = cards[3].get_suit_rank()
+		fifth = cards[4].get_suit_rank()
+		return first == second == third == fourth == fifth
 	def is_straight(self):
 		cards = self.get_rank_list()
 		straight = False
@@ -393,6 +393,7 @@ def ranking_hands(hands):
 		is_flush = hand.is_flush()
 		is_straight = hand.is_straight()
 		if is_flush and is_straight: # if straight flush...
+			highest_rank = ranks_list[4].get_num_rank()
 			if highest_rank == 12: # i.e. if highest rank is ACE
 				value_of_hand = ROYAL_FLUSH # hand is royal flush; best possible hand.
 			else:
@@ -430,21 +431,21 @@ def get_ordinal(n):
 def get_hand_value_as_string(value_of_hand):
 	if value_of_hand == ROYAL_FLUSH:
 		rank_string = "(Royal Flush!)"
-	elif STRAIGHT_FLUSH < value_of_hand < ROYAL_FLUSH:
+	elif STRAIGHT_FLUSH <= value_of_hand < ROYAL_FLUSH:
 		rank_string = "(Straight Flush)"
-	elif FOUR_OF_A_KIND < value_of_hand < STRAIGHT_FLUSH:
+	elif FOUR_OF_A_KIND <= value_of_hand < STRAIGHT_FLUSH:
 		rank_string = "(Four of a Kind)"
-	elif FULL_HOUSE < value_of_hand < FOUR_OF_A_KIND:
+	elif FULL_HOUSE <= value_of_hand < FOUR_OF_A_KIND:
 		rank_string = "(Full House)"
-	elif FLUSH < value_of_hand < FULL_HOUSE:
+	elif FLUSH <= value_of_hand < FULL_HOUSE:
 		rank_string = "(Flush)"
-	elif STRAIGHT < value_of_hand < FLUSH:
+	elif STRAIGHT <= value_of_hand < FLUSH:
 		rank_string = "(Straight)"
-	elif THREE_OF_A_KIND < value_of_hand < STRAIGHT:
+	elif THREE_OF_A_KIND <= value_of_hand < STRAIGHT:
 		rank_string = "(Three of a Kind)"
-	elif TWO_PAIR < value_of_hand < THREE_OF_A_KIND:
+	elif TWO_PAIR <= value_of_hand < THREE_OF_A_KIND:
 		rank_string = "(Two Pair)"
-	elif ONE_PAIR < value_of_hand < TWO_PAIR:
+	elif ONE_PAIR <= value_of_hand < TWO_PAIR:
 		rank_string = "(One Pair)"
 	else:
 		rank_string = "(High Card)"
@@ -462,12 +463,11 @@ try:
 	winner_hand = winner[0]
 	hand_value_as_string = get_hand_value_as_string(winner[1])
 	print('Winner is:', winner_hand, hand_value_as_string)
-
 	print('Leaderboard:')
 	for result in ranking:
 		hand = result[0]
 		value = get_hand_value_as_string(result[1])
-		# value = int(result[1])
+		# value += (" " + str(result[1]))
 		ordinal = get_ordinal(ranking.index(result) + 1)
 		print(ordinal, 'place:', hand, value)
 except IndexError:
