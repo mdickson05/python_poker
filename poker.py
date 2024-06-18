@@ -136,7 +136,7 @@ class Hand:
 				# i.e. if 2,3,4 and 5 appear
 				straight = True
 		else:
-			straight = self.walk(cards)
+			straight = self.walk()
 		return straight
 	def is_four_of_a_kind(self):
 		positions = self.get_rank_positions()
@@ -226,18 +226,14 @@ class Hand:
 			one_pair = pair_first or pair_front_mid or pair_back_mid or pair_last
 		return one_pair
 
-	def walk(self, cards):
+	def walk(self):
 	# if hand is "walkable", it means that next element in the list is the value of the previous + 1
-	# i.e 3 = 2 + 1,etc.
-		walkable = True
-		rank = cards[0].get_rank_value() # start with lowest rank
-		for card in cards[1:]:
-			if card.get_rank_value() != rank + 1:
-				walkable = False
-				break # no point iterating if not walkable
-			else:
-				rank = card.get_rank_value()
-		return walkable
+	# i.e 3 = 2 + 1, etc.
+		positions = self.get_rank_positions()
+		for i in range(len(positions) - 1):
+			if positions[i+1] != positions[i] + 1:
+				return False
+		return True
 	
 # Taken from tournament.py in mdickson05/50pythonpuzzles
 def parse_input(cli_path):
@@ -368,15 +364,11 @@ def ranking_hands(hands):
 	ONE_PAIR = 1000000
 
 	for hand in hands:
-		# print('Hand:')
 		value_of_hand = 0 # undefined hand rank is 0
-		
 		ranks_list = hand.get_rank_list()
-		high_card_rank = high_card_value(hand)
+		high_card_rank = high_card_value(hand) # big number used to differentiate hands of same type
 		set_rank = ranks_list[2].get_rank_value()
 		suits_rank = suit_value(hand) # used in case of draw!
-		# for card in hand:
-			# print('Suit:', card.get_suit(), 'rank:', card.get_rank_value())
 		is_flush = hand.is_flush()
 		is_straight = hand.is_straight()
 		if is_flush and is_straight: # if straight flush...
@@ -403,7 +395,6 @@ def ranking_hands(hands):
 			value_of_hand = high_card_rank
 		ranking = (hand, value_of_hand, suits_rank)
 		ranks.append(ranking)
-		# print('Card complete')
 	ranks.sort(key=lambda ranking: (ranking[1], ranking[2]),reverse=True)
 	return ranks
 
@@ -441,10 +432,6 @@ def get_hand_value_as_string(value_of_hand):
 try:
 	path = sys.argv[1]
 	hands_list = parse_input(path)
-	# for hand in hands_list:	
-		# print('Hand:')
-		# for item in hand:
-		#	print('Card:', item, 'Suit:', item.get_suit_value(), 'Rank:', item.get_rank_value()) 
 	ranking = ranking_hands(hands_list)
 	winner = ranking[0]
 	winner_hand = winner[0]
@@ -454,7 +441,6 @@ try:
 	for result in ranking:
 		hand = result[0]
 		value = get_hand_value_as_string(result[1])
-		# value += (" " + str(result[1]))
 		ordinal = get_ordinal(ranking.index(result) + 1)
 		print(ordinal, 'place:', hand, value)
 except IndexError:
