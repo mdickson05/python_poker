@@ -450,9 +450,8 @@ def get_hand_value_as_string(value_of_hand):
 		rank_string = "(High Card)"
 	return rank_string
 
-
-path = sys.argv[1]
-if path != None:
+try:
+	path = sys.argv[1]
 	hands_list = parse_input(path)
 	# for hand in hands_list:	
 		# print('Hand:')
@@ -471,5 +470,5 @@ if path != None:
 		# value = int(result[1])
 		ordinal = get_ordinal(ranking.index(result) + 1)
 		print(ordinal, 'place:', hand, value)
-else:
+except IndexError:
 	print('Error: path not entered properly. Please Try Again.')
