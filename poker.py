@@ -1,5 +1,6 @@
 # Pick the best hand(s) from a list of poker hands.
 from pathlib import Path
+import sys
 class Card:
 	def __init__(self, suit, num):
 		self.suit = suit
@@ -247,10 +248,11 @@ class Hand:
 		return walkable
 	
 # Taken from tournament.py in mdickson05/50pythonpuzzles
-def parse_input():
+def parse_input(cli_path):
 	all_hands = []
 	src = Path(__file__).parent
-	relative_path = "input_files/poker.txt"
+	relative_path = "input_files"
+	relative_path += ("/" + cli_path)
 	path = (src / relative_path).resolve()
 	with path.open() as f:
 		lines = f.readlines()
@@ -448,21 +450,26 @@ def get_hand_value_as_string(value_of_hand):
 		rank_string = "(High Card)"
 	return rank_string
 
-hands_list = parse_input()
-# for hand in hands_list:	
-	# print('Hand:')
-	# for item in hand:
-	#	print('Card:', item, 'Suit:', item.get_suit_rank(), 'Rank:', item.get_num_rank()) 
-ranking = ranking_hands(hands_list)
-winner = ranking[0]
-winner_hand = winner[0]
-hand_value_as_string = get_hand_value_as_string(winner[1])
-print('Winner is:', winner_hand, hand_value_as_string)
 
-print('Leaderboard:')
-for result in ranking:
-	hand = result[0]
-	value = get_hand_value_as_string(result[1])
-	# value = int(result[1])
-	ordinal = get_ordinal(ranking.index(result) + 1)
-	print(ordinal, 'place:', hand, value)
+path = sys.argv[1]
+if path != None:
+	hands_list = parse_input(path)
+	# for hand in hands_list:	
+		# print('Hand:')
+		# for item in hand:
+		#	print('Card:', item, 'Suit:', item.get_suit_rank(), 'Rank:', item.get_num_rank()) 
+	ranking = ranking_hands(hands_list)
+	winner = ranking[0]
+	winner_hand = winner[0]
+	hand_value_as_string = get_hand_value_as_string(winner[1])
+	print('Winner is:', winner_hand, hand_value_as_string)
+
+	print('Leaderboard:')
+	for result in ranking:
+		hand = result[0]
+		value = get_hand_value_as_string(result[1])
+		# value = int(result[1])
+		ordinal = get_ordinal(ranking.index(result) + 1)
+		print(ordinal, 'place:', hand, value)
+else:
+	print('Error: path not entered properly. Please Try Again.')
