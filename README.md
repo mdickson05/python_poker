@@ -8,10 +8,7 @@ Pretty straight forward idea. The program takes in a text file of five poker car
 - All cards within a hand are separated by ";", and all hands are separated by a line.
 - Note: Jokers are not included... yet ;)
 ### TO-DO list:
-- ~~Convert the winning result to the full string (i.e. Th becomes Ten of Hearts)~~
-- ~~Show what the winning hand actually was~~
 - Clean up some redundant code
 - Tidy up the variable naming
-- ~~Maybe have a 'results leaderboard' as opposed to just a single winner?~~
-- Fix up rankings!
+- ~~Fix up rankings!~~
 - Make full test suite
